@@ -23,8 +23,11 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD || 'postgres',
   // Supabase (produção) exige SSL; Postgres local de desenvolvimento normalmente
   // não tem SSL configurado — por isso é opt-in via DB_SSL=true, nunca ligado
-  // por padrão (o que quebraria o dev local).
-  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: true } : false,
+  // por padrão (o que quebraria o dev local). rejectUnauthorized:false porque o
+  // ambiente de contêiner do Railway não reconhece a cadeia de certificado do
+  // pooler do Supabase (erro "self-signed certificate in certificate chain") —
+  // a conexão continua criptografada, só não valida a autoridade certificadora.
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
 });
 
 const app = express();
