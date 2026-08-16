@@ -21,6 +21,10 @@ const pool = new Pool({
   database: process.env.DB_NAME || 'gc_patrimonial_app',
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
+  // Supabase (produção) exige SSL; Postgres local de desenvolvimento normalmente
+  // não tem SSL configurado — por isso é opt-in via DB_SSL=true, nunca ligado
+  // por padrão (o que quebraria o dev local).
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: true } : false,
 });
 
 const app = express();
