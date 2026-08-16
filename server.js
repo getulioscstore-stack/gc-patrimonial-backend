@@ -98,12 +98,15 @@ app.post('/api/auth/login', async (req, res) => {
     user_id: user.id, email: user.email, role: user.role,
     organization_id: user.organization_id, professional_id: user.professional_id,
   }, JWT_SECRET, { expiresIn: '8h' });
-  res.cookie('session', token, { httpOnly: true });
+  // secure=true em produção (HTTPS) — em dev local (HTTP) fica false
+  // automaticamente, senão o cookie nunca seria aceito pelo navegador ali.
+  const cookieOpts = { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' };
+  res.cookie('session', token, cookieOpts);
   res.json({ ok: true, user: { email: user.email, role: user.role } });
 });
 
 app.post('/api/auth/logout', (req, res) => {
-  res.clearCookie('session');
+  res.clearCookie('session', { httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' });
   res.json({ ok: true });
 });
 
