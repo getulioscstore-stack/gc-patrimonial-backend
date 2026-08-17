@@ -388,6 +388,12 @@ structuredCollectionEndpoint('/api/clients/:id/assets', 'assets', ['category', '
 structuredCollectionEndpoint('/api/clients/:id/liabilities', 'liabilities', ['description', 'balance', 'monthly_payment']);
 structuredCollectionEndpoint('/api/clients/:id/objectives', 'objectives', ['category', 'target_value', 'monthly_contribution']);
 structuredCollectionEndpoint('/api/clients/:id/investments', 'investments', ['type', 'estimated_value']);
+
+// FASE 1 do Dimensionamento Patrimonial (autorizado explicitamente): só
+// coleta de proteções já existentes, sem nenhum cálculo. feeds_engine=false
+// na pergunta U010 — nenhuma regra do motor lê esta tabela ainda.
+structuredCollectionEndpoint('/api/clients/:id/protections', 'client_protections',
+  ['protection_type', 'insurer', 'covered_amount', 'monthly_premium', 'protected_person', 'notes']);
 structuredCollectionEndpoint('/api/clients/:id/businesses', 'businesses', ['name', 'dependency_level', 'continuity_plan', 'succession_plan']);
 
 // ---------------------------------------------------------------
