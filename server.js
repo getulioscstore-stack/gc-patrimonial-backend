@@ -183,6 +183,19 @@ app.get('/api/clients/:id', requireAuth, async (req, res) => {
   res.json({ ...rows[0], family_members: family, profiles });
 });
 
+// "Excluir" cliente = arquivar (status='ARCHIVED'), nunca DELETE físico.
+// Reaproveita o campo `status` já existente no schema (clients_status_check
+// já permite ACTIVE/INACTIVE/ARCHIVED) — nenhuma alteração de schema.
+// GET /api/clients já filtra ARCHIVED (linha ~136), então o cliente some da
+// listagem sem perder nenhum dado, anamnese ou diagnóstico já produzido.
+app.post('/api/clients/:id/archive', requireAuth, async (req, res) => {
+  const owned = await getOwnedClientOrNull(pool, req.params.id, req.user);
+  if (!owned) return res.status(404).json({ error: 'Cliente não encontrado' });
+
+  await pool.query(`UPDATE clients SET status = 'ARCHIVED' WHERE id = $1`, [req.params.id]);
+  res.json({ ok: true, status: 'ARCHIVED' });
+});
+
 // ---------------------------------------------------------------
 // ANAMNESE — só "iniciar" nesta etapa (perguntas/respostas ficam para a Etapa 2)
 // ---------------------------------------------------------------
