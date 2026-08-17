@@ -153,9 +153,9 @@ app.post('/api/clients', requireAuth, async (req, res) => {
 
     for (const fm of (family_members || [])) {
       await client.query(
-        `INSERT INTO family_members (client_id, name, relationship, monthly_income, financial_dependency)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [clientId, fm.name || null, fm.relationship, fm.monthly_income || 0, fm.financial_dependency || false]);
+        `INSERT INTO family_members (client_id, name, relationship, age, monthly_income, financial_dependency)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [clientId, fm.name || null, fm.relationship, fm.age || null, fm.monthly_income || 0, fm.financial_dependency || false]);
     }
     for (const profileType of (profiles || [])) {
       await client.query(
@@ -381,13 +381,13 @@ function structuredCollectionEndpoint(path, table, columns) {
     }
   });
 }
-structuredCollectionEndpoint('/api/clients/:id/family-members', 'family_members', ['name', 'relationship', 'monthly_income', 'financial_dependency']);
+structuredCollectionEndpoint('/api/clients/:id/family-members', 'family_members', ['name', 'relationship', 'age', 'monthly_income', 'financial_dependency']);
 structuredCollectionEndpoint('/api/clients/:id/income-sources', 'income_sources', ['type', 'monthly_value']);
 structuredCollectionEndpoint('/api/clients/:id/expenses', 'expenses', ['category', 'monthly_value']);
 structuredCollectionEndpoint('/api/clients/:id/assets', 'assets', ['category', 'estimated_value', 'liquidity']);
 structuredCollectionEndpoint('/api/clients/:id/liabilities', 'liabilities', ['description', 'balance', 'monthly_payment']);
 structuredCollectionEndpoint('/api/clients/:id/objectives', 'objectives', ['category', 'target_value', 'monthly_contribution']);
-structuredCollectionEndpoint('/api/clients/:id/investments', 'investments', ['type']);
+structuredCollectionEndpoint('/api/clients/:id/investments', 'investments', ['type', 'estimated_value']);
 structuredCollectionEndpoint('/api/clients/:id/businesses', 'businesses', ['name', 'dependency_level', 'continuity_plan', 'succession_plan']);
 
 // ---------------------------------------------------------------
