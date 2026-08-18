@@ -473,6 +473,20 @@ app.post('/api/anamneses/:id/execute', requireAuth, async (req, res) => {
   res.json({ ok: true, executed: true });
 });
 
+// FASE 3 do Dimensionamento Patrimonial — camada SEPARADA do motor de risco
+// acima. Nunca chamada automaticamente junto de /execute; o corretor aciona
+// explicitamente. Não altera client_scores, client_diagnostics nem nenhuma
+// tabela do núcleo congelado.
+app.post('/api/anamneses/:id/capital-needs', requireAuth, async (req, res) => {
+  const anamnese = await getOwnedAnamneseOrNull(pool, req.params.id, req.user);
+  if (!anamnese) return res.status(404).json({ error: 'Anamnese não encontrada' });
+  if (anamnese.status !== 'COMPLETED') {
+    return res.status(409).json({ error: 'Anamnese precisa estar CONCLUÍDA antes de calcular o dimensionamento' });
+  }
+  await pool.query(`SELECT compute_capital_needs($1, $2)`, [anamnese.client_id, req.params.id]);
+  res.json({ ok: true, calculated: true });
+});
+
 // ---------------------------------------------------------------
 // LEITURA DE RESULTADOS — puro SELECT nas tabelas/views já congeladas
 // ---------------------------------------------------------------
@@ -507,6 +521,16 @@ app.get('/api/anamneses/:id/consolidated', requireAuth, async (req, res) => {
   const anamnese = await getOwnedAnamneseOrNull(pool, req.params.id, req.user);
   if (!anamnese) return res.status(404).json({ error: 'Anamnese não encontrada' });
   const { rows } = await pool.query(`SELECT * FROM v_client_consolidated_recommendations WHERE anamnese_id = $1`, [req.params.id]);
+  res.json(rows);
+});
+
+app.get('/api/anamneses/:id/capital-needs', requireAuth, async (req, res) => {
+  const anamnese = await getOwnedAnamneseOrNull(pool, req.params.id, req.user);
+  if (!anamnese) return res.status(404).json({ error: 'Anamnese não encontrada' });
+  const { rows } = await pool.query(
+    `SELECT scenario_code, available, unavailable_reason, necessidade, protecao_existente,
+            recursos_disponiveis, recursos_totais, gap, calculation_detail, calculated_at
+     FROM client_capital_needs WHERE anamnese_id = $1 ORDER BY scenario_code`, [req.params.id]);
   res.json(rows);
 });
 
